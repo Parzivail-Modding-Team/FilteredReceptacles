@@ -1,4 +1,6 @@
 {
   "block.filteredreceptacles.receptacle_basic": "Basic Receptacle",
-  "block.filteredreceptacles.receptacle_strict": "Strict Receptacle"
+  "block.filteredreceptacles.receptacle_strict": "Strict Receptacle",
+  "block.filteredreceptacles.receptacle_bottomless": "Bottomless Receptacle",
+  "block.filteredreceptacles.receptacle_waste": "Waste Receptacle"
 }

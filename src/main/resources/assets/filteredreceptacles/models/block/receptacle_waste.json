@@ -1,0 +1,8 @@
+{
+  "parent": "block/cube_bottom_top",
+  "textures": {
+	"top": "filteredreceptacles:block/receptacle_top",
+	"side": "filteredreceptacles:block/receptacle_waste",
+	"bottom": "filteredreceptacles:block/receptacle_bottom"
+  }
+}

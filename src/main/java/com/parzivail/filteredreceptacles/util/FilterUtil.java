@@ -1,11 +1,17 @@
 package com.parzivail.filteredreceptacles.util;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 
 import java.util.Objects;
 
 public class FilterUtil
 {
+	public static boolean IsEmpty(ItemStack referenceStack)
+	{
+		return referenceStack == ItemStack.EMPTY || (referenceStack.getItem() == Items.AIR && referenceStack.getCount() == 0);
+	}
+
 	public enum FilterLevel
 	{
 		Item, FuzzyItem, ItemAndData

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+	"BBB", "BSB", "CCC"
+  ],
+  "key": {
+	"B": {
+	  "item": "minecraft:iron_bars"
+	},
+	"S": {
+	  "item": "minecraft:chest"
+	},
+	"C": {
+	  "item": "minecraft:netherrack"
+	}
+  },
+  "result": {
+	"item": "filteredreceptacles:receptacle_waste",
+	"count": 1
+  }
+}
