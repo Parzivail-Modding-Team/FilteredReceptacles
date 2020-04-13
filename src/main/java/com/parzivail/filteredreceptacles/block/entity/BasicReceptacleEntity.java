@@ -87,7 +87,7 @@ public class BasicReceptacleEntity extends LootableContainerBlockEntity implemen
 	@Override
 	public int getInvSize()
 	{
-		return inv.size() - 1;
+		return inv.size();
 	}
 
 	@Override
