@@ -40,6 +40,6 @@ public class BasicReceptacleScreen extends AbstractContainerScreen<BasicReceptac
 		int i = (this.width - this.containerWidth) / 2;
 		int j = (this.height - this.containerHeight) / 2;
 		this.blit(i, j, 0, 0, this.containerWidth, this.containerHeight);
-		this.blit(i, j + 7 * 18, 0, 126, this.containerWidth, this.containerHeight);
+		this.blit(i, j + 7 * 18, 0, 126, this.containerWidth, 126);
 	}
 }

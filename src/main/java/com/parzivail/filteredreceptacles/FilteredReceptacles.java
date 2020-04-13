@@ -39,7 +39,7 @@ public class FilteredReceptacles implements ModInitializer, ClientModInitializer
 
 	private static void registerReceptacle(Identifier id, BasicReceptacle block)
 	{
-		registerItem(id, block, ItemGroup.MISC);
+		registerItem(id, block, ItemGroup.DECORATIONS);
 		Registry.register(Registry.BLOCK_ENTITY, id, BlockEntityType.Builder.create(() -> new BasicReceptacleEntity(block), block).build(null));
 		registerContainerFactory(id);
 	}
