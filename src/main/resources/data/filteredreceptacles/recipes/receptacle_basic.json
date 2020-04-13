@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+	"BBB", "BSB", "CCC"
+  ],
+  "key": {
+	"B": {
+	  "item": "minecraft:iron_bars"
+	},
+	"S": {
+	  "item": "minecraft:chest"
+	},
+	"C": {
+	  "item": "minecraft:cobblestone"
+	}
+  },
+  "result": {
+	"item": "filteredreceptacles:receptacle_basic",
+	"count": 1
+  }
+}
