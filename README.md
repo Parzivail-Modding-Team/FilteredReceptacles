@@ -28,10 +28,16 @@ The Waste Receptacle immediately destroys any item placed into the slot.
 
 ## Bottomless Receptacle
 
-![Crafting Recipe](https://i.imgur.com/WDeDIqr.png)
+![Crafting Recipe](https://i.imgur.com/mRbeduy.png)
 
 ![GUI](https://i.imgur.com/bNl4Scz.png)
 
 Store All The Items! The Bottomless Receptacle withdraws any item placed in the leftmost slot and places it within its mysterious innards. It keeps one stack handy on the right. Stores up to 9,223,372,036,854,775,808 items internally, plus one stack in the output slot. That's a lot!
 
 The Bottomless Receptacle will keep all of your items when broken, much like a shulker box.
+
+## Matter Transducer
+
+![Crafting Recipe](https://i.imgur.com/qOSI57M.png)
+
+The Matter Transducer is a component in the crafting recipe of the Bottomless Receptacle.
