@@ -1,6 +1,6 @@
 # Filtered Receptacles
 
-![Fabric API](https://i.imgur.com/MqGoT3L.png)
+[![Fabric API](https://i.imgur.com/MqGoT3L.png)](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
 
 ## Basic Receptacle
 
