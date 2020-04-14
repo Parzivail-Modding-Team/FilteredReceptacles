@@ -22,6 +22,7 @@ public class FilterUtil
 		if (a.isEmpty() || b.isEmpty())
 			return false;
 
+		// TODO: Tags
 		switch (level)
 		{
 			case Item:

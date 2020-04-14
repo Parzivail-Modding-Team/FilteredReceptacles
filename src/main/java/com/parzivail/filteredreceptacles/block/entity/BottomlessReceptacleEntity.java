@@ -27,9 +27,9 @@ import java.util.stream.Stream;
 
 public class BottomlessReceptacleEntity extends LootableContainerBlockEntity implements SidedInventory, Tickable
 {
-	protected final int INPUT = 0;
-	protected final int OUTPUT = 1;
-	protected final int REFERENCE = 2;
+	public static final int INPUT = 0;
+	public static final int OUTPUT = 1;
+	public static final int REFERENCE = 2;
 
 	private final String i18nName;
 	protected DefaultedList<ItemStack> inv;
@@ -47,8 +47,13 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 	public CompoundTag toTag(CompoundTag tag)
 	{
 		tag = super.toTag(tag);
-		Inventories.toTag(tag, inv);
+		Inventories.toTag(tag, inv, false);
 		tag.putLong("numItemsStored", numItemsStored);
+		return tag;
+	}
+
+	public CompoundTag serializeInventory(CompoundTag tag)
+	{
 		return tag;
 	}
 
@@ -78,6 +83,13 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 	public void fromTag(CompoundTag tag)
 	{
 		super.fromTag(tag);
+		Inventories.fromTag(tag, inv);
+		numItemsStored = tag.getLong("numItemsStored");
+		markDirty();
+	}
+
+	public void fromItemTag(CompoundTag tag)
+	{
 		Inventories.fromTag(tag, inv);
 		numItemsStored = tag.getLong("numItemsStored");
 		markDirty();

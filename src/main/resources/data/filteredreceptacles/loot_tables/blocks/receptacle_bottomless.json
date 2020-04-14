@@ -6,12 +6,24 @@
 	  "entries": [
 		{
 		  "type": "minecraft:item",
+		  "functions": [
+			{
+			  "function": "minecraft:copy_nbt",
+			  "source": "block_entity",
+			  "ops": [
+				{
+				  "source": "Items",
+				  "target": "Items",
+				  "op": "replace"
+				}, {
+				  "source": "numItemsStored",
+				  "target": "numItemsStored",
+				  "op": "replace"
+				}
+			  ]
+			}
+		  ],
 		  "name": "filteredreceptacles:receptacle_bottomless"
-		}
-	  ],
-	  "conditions": [
-		{
-		  "condition": "minecraft:survives_explosion"
 		}
 	  ]
 	}

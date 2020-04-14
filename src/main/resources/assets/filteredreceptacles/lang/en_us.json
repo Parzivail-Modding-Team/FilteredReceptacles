@@ -1,6 +1,9 @@
 {
+  "itemGroup.filteredreceptacles.general": "Filtered Receptacles",
   "block.filteredreceptacles.receptacle_basic": "Basic Receptacle",
   "block.filteredreceptacles.receptacle_strict": "Strict Receptacle",
   "block.filteredreceptacles.receptacle_bottomless": "Bottomless Receptacle",
-  "block.filteredreceptacles.receptacle_waste": "Waste Receptacle"
+  "container.filteredreceptacles.receptacle_bottomless.more": "%s %s",
+  "block.filteredreceptacles.receptacle_waste": "Waste Receptacle",
+  "item.filteredreceptacles.matter_transducer": "Matter Transducer"
 }

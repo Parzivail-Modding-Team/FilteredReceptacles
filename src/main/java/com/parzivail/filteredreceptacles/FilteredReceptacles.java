@@ -12,6 +12,7 @@ import com.parzivail.filteredreceptacles.gui.WasteReceptacleScreen;
 import com.parzivail.filteredreceptacles.util.FilterUtil;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry;
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
@@ -22,6 +23,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
@@ -44,24 +46,31 @@ public class FilteredReceptacles implements ModInitializer, ClientModInitializer
 	public static final Identifier ID_RECEPTACLE_WASTE = new Identifier(MODID, "receptacle_waste");
 	public static final WasteReceptacle BLOCK_RECEPTACLE_WASTE = new WasteReceptacle();
 
+	public static final ItemGroup ITEM_GROUP = FabricItemGroupBuilder.build(new Identifier(MODID, "general"), () -> new ItemStack(BLOCK_RECEPTACLE_BASIC));
+
+	public static final Identifier ID_MATTER_TRANSDUCER = new Identifier(MODID, "matter_transducer");
+	public static final Item MATTER_TRANSDUCER = new Item(new Item.Settings().group(ITEM_GROUP));
+
 	@Override
 	public void onInitialize()
 	{
 		registerReceptacle(ID_RECEPTACLE_BASIC, BLOCK_RECEPTACLE_BASIC);
 		registerReceptacle(ID_RECEPTACLE_STRICT, BLOCK_RECEPTACLE_STRICT);
 
-		registerItem(ID_RECEPTACLE_BOTTOMLESS, BLOCK_RECEPTACLE_BOTTOMLESS, ItemGroup.DECORATIONS);
+		registerItem(ID_RECEPTACLE_BOTTOMLESS, BLOCK_RECEPTACLE_BOTTOMLESS, ITEM_GROUP);
 		Registry.register(Registry.BLOCK_ENTITY, ID_RECEPTACLE_BOTTOMLESS, BlockEntityType.Builder.create(() -> new BottomlessReceptacleEntity(BLOCK_RECEPTACLE_BOTTOMLESS), BLOCK_RECEPTACLE_BOTTOMLESS).build(null));
 		registerContainerFactory(ID_RECEPTACLE_BOTTOMLESS);
 
-		registerItem(ID_RECEPTACLE_WASTE, BLOCK_RECEPTACLE_WASTE, ItemGroup.DECORATIONS);
+		registerItem(ID_RECEPTACLE_WASTE, BLOCK_RECEPTACLE_WASTE, ITEM_GROUP);
 		Registry.register(Registry.BLOCK_ENTITY, ID_RECEPTACLE_WASTE, BlockEntityType.Builder.create(() -> new WasteReceptacleEntity(BLOCK_RECEPTACLE_WASTE), BLOCK_RECEPTACLE_WASTE).build(null));
 		registerContainerFactory(ID_RECEPTACLE_WASTE);
+
+		Registry.register(Registry.ITEM, ID_MATTER_TRANSDUCER, MATTER_TRANSDUCER);
 	}
 
 	private static void registerReceptacle(Identifier id, BasicReceptacle block)
 	{
-		registerItem(id, block, ItemGroup.DECORATIONS);
+		registerItem(id, block, ITEM_GROUP);
 		Registry.register(Registry.BLOCK_ENTITY, id, BlockEntityType.Builder.create(() -> new BasicReceptacleEntity(block), block).build(null));
 		registerContainerFactory(id);
 	}
