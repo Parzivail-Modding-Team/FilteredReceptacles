@@ -25,7 +25,7 @@ public class WasteReceptacle extends BlockWithEntity implements InventoryProvide
 {
 	public WasteReceptacle()
 	{
-		super(FabricBlockSettings.of(Material.METAL).breakByTool(FabricToolTags.PICKAXES, 3).strength(25, 2).build());
+		super(FabricBlockSettings.of(Material.METAL).breakByTool(FabricToolTags.PICKAXES, 3).strength(12, 2).build());
 	}
 
 	@Override

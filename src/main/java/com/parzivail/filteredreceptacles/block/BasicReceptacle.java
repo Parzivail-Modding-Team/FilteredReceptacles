@@ -28,7 +28,7 @@ public class BasicReceptacle extends BlockWithEntity implements InventoryProvide
 
 	public BasicReceptacle(FilterUtil.FilterLevel filterLevel)
 	{
-		super(FabricBlockSettings.of(Material.METAL).breakByTool(FabricToolTags.PICKAXES, 1).strength(1, 2).build());
+		super(FabricBlockSettings.of(Material.METAL).breakByTool(FabricToolTags.PICKAXES, 1).strength(12, 2).build());
 		this.filterLevel = filterLevel;
 	}
 
