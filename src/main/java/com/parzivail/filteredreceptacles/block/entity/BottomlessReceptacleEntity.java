@@ -7,19 +7,20 @@ import com.parzivail.filteredreceptacles.util.FilterUtil;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 import net.fabricmc.fabric.api.server.PlayerStream;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.container.Container;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.DefaultedList;
-import net.minecraft.util.PacketByteBuf;
 import net.minecraft.util.Tickable;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Direction;
 
 import java.util.stream.IntStream;
@@ -69,7 +70,7 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 	}
 
 	@Override
-	protected Container createContainer(int syncId, PlayerInventory playerInventory)
+	protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory)
 	{
 		return new BottomlessReceptacleContainer(syncId, playerInventory, this);
 	}
@@ -80,9 +81,9 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 	}
 
 	@Override
-	public void fromTag(CompoundTag tag)
+	public void fromTag(BlockState state, CompoundTag tag)
 	{
-		super.fromTag(tag);
+		super.fromTag(state, tag);
 		Inventories.fromTag(tag, inv);
 		numItemsStored = tag.getLong("numItemsStored");
 		markDirty();
@@ -96,38 +97,38 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 	}
 
 	@Override
-	public int[] getInvAvailableSlots(Direction side)
+	public int[] getAvailableSlots(Direction side)
 	{
 		return IntStream.range(0, inv.size()).toArray();
 	}
 
 	@Override
-	public boolean canInsertInvStack(int slot, ItemStack stack, Direction dir)
+	public boolean canInsert(int slot, ItemStack stack, Direction dir)
 	{
-		ItemStack ref = getInvStack(OUTPUT);
+		ItemStack ref = getStack(OUTPUT);
 		return slot == 0 && (FilterUtil.IsEmpty(ref) || FilterUtil.AreEqual(ref, stack, FilterUtil.FilterLevel.ItemAndData));
 	}
 
 	@Override
-	public boolean canExtractInvStack(int slot, ItemStack stack, Direction dir)
+	public boolean canExtract(int slot, ItemStack stack, Direction dir)
 	{
 		return slot == 1;
 	}
 
 	@Override
-	public int getInvSize()
+	public int size()
 	{
 		return inv.size();
 	}
 
 	@Override
-	public boolean isInvEmpty()
+	public boolean isEmpty()
 	{
 		return inv.isEmpty();
 	}
 
 	@Override
-	public ItemStack getInvStack(int slot)
+	public ItemStack getStack(int slot)
 	{
 		if (slot < 0 || slot >= inv.size())
 		{
@@ -137,21 +138,21 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 	}
 
 	@Override
-	public ItemStack takeInvStack(int slot, int amount)
+	public ItemStack removeStack(int slot, int amount)
 	{
 		markDirty();
 		return Inventories.splitStack(this.inv, slot, amount);
 	}
 
 	@Override
-	public ItemStack removeInvStack(int slot)
+	public ItemStack removeStack(int slot)
 	{
 		markDirty();
 		return Inventories.removeStack(this.inv, slot);
 	}
 
 	@Override
-	public void setInvStack(int slot, ItemStack stack)
+	public void setStack(int slot, ItemStack stack)
 	{
 		if (slot < 0 || slot >= inv.size())
 		{
@@ -159,15 +160,15 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 		}
 
 		this.inv.set(slot, stack);
-		if (stack.getCount() > this.getInvMaxStackAmount())
+		if (stack.getCount() > this.getMaxCountPerStack())
 		{
-			stack.setCount(this.getInvMaxStackAmount());
+			stack.setCount(this.getMaxCountPerStack());
 		}
 		markDirty();
 	}
 
 	@Override
-	public boolean canPlayerUseInv(PlayerEntity player)
+	public boolean canPlayerUse(PlayerEntity player)
 	{
 		if (this.world == null)
 			return false;
@@ -213,46 +214,46 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 
 		long prevStored = numItemsStored;
 
-		ItemStack inputStack = getInvStack(INPUT);
+		ItemStack inputStack = getStack(INPUT);
 		if (!inputStack.isEmpty())
 		{
-			if (FilterUtil.IsEmpty(getInvStack(REFERENCE)))
-				setInvStack(REFERENCE, inputStack.copy());
+			if (FilterUtil.IsEmpty(getStack(REFERENCE)))
+				setStack(REFERENCE, inputStack.copy());
 
 			if (!world.isClient)
 				numItemsStored += inputStack.getCount();
 
-			setInvStack(INPUT, ItemStack.EMPTY);
+			setStack(INPUT, ItemStack.EMPTY);
 		}
 
-		if (getInvStack(OUTPUT).getCount() < getInvStack(REFERENCE).getMaxCount() && numItemsStored > 0)
+		if (getStack(OUTPUT).getCount() < getStack(REFERENCE).getMaxCount() && numItemsStored > 0)
 		{
 			ItemStack outputStack;
 			int outputSize;
 
-			if (FilterUtil.IsEmpty(getInvStack(OUTPUT)))
+			if (FilterUtil.IsEmpty(getStack(OUTPUT)))
 			{
-				outputStack = getInvStack(REFERENCE).copy();
+				outputStack = getStack(REFERENCE).copy();
 				outputSize = 0;
 			}
 			else
 			{
-				outputStack = getInvStack(OUTPUT).copy();
+				outputStack = getStack(OUTPUT).copy();
 				outputSize = outputStack.getCount();
 			}
 
-			int diff = (int)Math.min(numItemsStored, getInvStack(REFERENCE).getMaxCount() - outputSize);
+			int diff = (int)Math.min(numItemsStored, getStack(REFERENCE).getMaxCount() - outputSize);
 
 			if (!world.isClient)
 				numItemsStored -= diff;
 
 			outputStack.setCount(outputSize + diff);
 
-			setInvStack(OUTPUT, outputStack);
+			setStack(OUTPUT, outputStack);
 		}
 
-		if (!FilterUtil.IsEmpty(getInvStack(REFERENCE)) && numItemsStored == 0 && getInvStack(INPUT).isEmpty() && getInvStack(OUTPUT).isEmpty())
-			setInvStack(REFERENCE, ItemStack.EMPTY);
+		if (!FilterUtil.IsEmpty(getStack(REFERENCE)) && numItemsStored == 0 && getStack(INPUT).isEmpty() && getStack(OUTPUT).isEmpty())
+			setStack(REFERENCE, ItemStack.EMPTY);
 
 		if (prevStored != numItemsStored && !world.isClient)
 		{

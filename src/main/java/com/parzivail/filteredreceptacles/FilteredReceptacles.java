@@ -58,11 +58,11 @@ public class FilteredReceptacles implements ModInitializer, ClientModInitializer
 		registerReceptacle(ID_RECEPTACLE_STRICT, BLOCK_RECEPTACLE_STRICT);
 
 		registerItem(ID_RECEPTACLE_BOTTOMLESS, BLOCK_RECEPTACLE_BOTTOMLESS, ITEM_GROUP);
-		Registry.register(Registry.BLOCK_ENTITY, ID_RECEPTACLE_BOTTOMLESS, BlockEntityType.Builder.create(() -> new BottomlessReceptacleEntity(BLOCK_RECEPTACLE_BOTTOMLESS), BLOCK_RECEPTACLE_BOTTOMLESS).build(null));
+		Registry.register(Registry.BLOCK_ENTITY_TYPE, ID_RECEPTACLE_BOTTOMLESS, BlockEntityType.Builder.create(() -> new BottomlessReceptacleEntity(BLOCK_RECEPTACLE_BOTTOMLESS), BLOCK_RECEPTACLE_BOTTOMLESS).build(null));
 		registerContainerFactory(ID_RECEPTACLE_BOTTOMLESS);
 
 		registerItem(ID_RECEPTACLE_WASTE, BLOCK_RECEPTACLE_WASTE, ITEM_GROUP);
-		Registry.register(Registry.BLOCK_ENTITY, ID_RECEPTACLE_WASTE, BlockEntityType.Builder.create(() -> new WasteReceptacleEntity(BLOCK_RECEPTACLE_WASTE), BLOCK_RECEPTACLE_WASTE).build(null));
+		Registry.register(Registry.BLOCK_ENTITY_TYPE, ID_RECEPTACLE_WASTE, BlockEntityType.Builder.create(() -> new WasteReceptacleEntity(BLOCK_RECEPTACLE_WASTE), BLOCK_RECEPTACLE_WASTE).build(null));
 		registerContainerFactory(ID_RECEPTACLE_WASTE);
 
 		Registry.register(Registry.ITEM, ID_MATTER_TRANSDUCER, MATTER_TRANSDUCER);
@@ -71,7 +71,7 @@ public class FilteredReceptacles implements ModInitializer, ClientModInitializer
 	private static void registerReceptacle(Identifier id, BasicReceptacle block)
 	{
 		registerItem(id, block, ITEM_GROUP);
-		Registry.register(Registry.BLOCK_ENTITY, id, BlockEntityType.Builder.create(() -> new BasicReceptacleEntity(block), block).build(null));
+		Registry.register(Registry.BLOCK_ENTITY_TYPE, id, BlockEntityType.Builder.create(() -> new BasicReceptacleEntity(block), block).build(null));
 		registerContainerFactory(id);
 	}
 
@@ -86,7 +86,7 @@ public class FilteredReceptacles implements ModInitializer, ClientModInitializer
 		ContainerProviderRegistry.INSTANCE.registerFactory(id, (syncId, identifier, player, buf) -> {
 			final World world = player.world;
 			final BlockPos pos = buf.readBlockPos();
-			return world.getBlockState(pos).createContainerProvider(world, pos).createMenu(syncId, player.inventory, player);
+			return world.getBlockState(pos).createScreenHandlerFactory(world, pos).createMenu(syncId, player.inventory, player);
 		});
 	}
 

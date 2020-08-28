@@ -21,15 +21,15 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.DefaultedList;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -55,7 +55,7 @@ public class BottomlessReceptacle extends BlockWithEntity implements InventoryPr
 
 	public BlockEntityType<?> getEntityType()
 	{
-		return Registry.BLOCK_ENTITY.get(Registry.BLOCK.getId(this));
+		return Registry.BLOCK_ENTITY_TYPE.get(Registry.BLOCK.getId(this));
 	}
 
 	public BlockRenderType getRenderType(BlockState state)
@@ -107,7 +107,7 @@ public class BottomlessReceptacle extends BlockWithEntity implements InventoryPr
 	}
 
 	@Override
-	public SidedInventory getInventory(BlockState state, IWorld world, BlockPos pos)
+	public SidedInventory getInventory(BlockState state, WorldAccess world, BlockPos pos)
 	{
 		BlockEntity blockEntity = world.getBlockEntity(pos);
 		if (blockEntity instanceof BottomlessReceptacleEntity)
@@ -122,12 +122,6 @@ public class BottomlessReceptacle extends BlockWithEntity implements InventoryPr
 			}
 			return null;
 		}
-	}
-
-	@Override
-	public boolean hasBlockEntity()
-	{
-		return true;
 	}
 
 	@Override

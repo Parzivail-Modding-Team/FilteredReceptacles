@@ -3,17 +3,18 @@ package com.parzivail.filteredreceptacles.block.entity;
 import com.parzivail.filteredreceptacles.block.BasicReceptacle;
 import com.parzivail.filteredreceptacles.gui.container.BasicReceptacleContainer;
 import com.parzivail.filteredreceptacles.util.FilterUtil;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.container.Container;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.DefaultedList;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Direction;
 
 import java.util.stream.IntStream;
@@ -48,21 +49,21 @@ public class BasicReceptacleEntity extends LootableContainerBlockEntity implemen
 	}
 
 	@Override
-	protected Container createContainer(int syncId, PlayerInventory playerInventory)
+	protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory)
 	{
 		return new BasicReceptacleContainer(syncId, playerInventory, this);
 	}
 
 	@Override
-	public void fromTag(CompoundTag tag)
+	public void fromTag(BlockState state, CompoundTag tag)
 	{
-		super.fromTag(tag);
+		super.fromTag(state, tag);
 		Inventories.fromTag(tag, inv);
 		markDirty();
 	}
 
 	@Override
-	public int[] getInvAvailableSlots(Direction side)
+	public int[] getAvailableSlots(Direction side)
 	{
 		return IntStream.range(1, inv.size()).toArray();
 	}
@@ -73,31 +74,31 @@ public class BasicReceptacleEntity extends LootableContainerBlockEntity implemen
 	}
 
 	@Override
-	public boolean canInsertInvStack(int slot, ItemStack stack, Direction dir)
+	public boolean canInsert(int slot, ItemStack stack, Direction dir)
 	{
-		return slot > 0 && FilterUtil.AreEqual(getInvStack(0), stack, filterLevel);
+		return slot > 0 && FilterUtil.AreEqual(getStack(0), stack, filterLevel);
 	}
 
 	@Override
-	public boolean canExtractInvStack(int slot, ItemStack stack, Direction dir)
+	public boolean canExtract(int slot, ItemStack stack, Direction dir)
 	{
 		return slot > 0;
 	}
 
 	@Override
-	public int getInvSize()
+	public int size()
 	{
 		return inv.size();
 	}
 
 	@Override
-	public boolean isInvEmpty()
+	public boolean isEmpty()
 	{
 		return inv.isEmpty();
 	}
 
 	@Override
-	public ItemStack getInvStack(int slot)
+	public ItemStack getStack(int slot)
 	{
 		if (slot < 0 || slot >= inv.size())
 		{
@@ -107,21 +108,21 @@ public class BasicReceptacleEntity extends LootableContainerBlockEntity implemen
 	}
 
 	@Override
-	public ItemStack takeInvStack(int slot, int amount)
+	public ItemStack removeStack(int slot, int amount)
 	{
 		markDirty();
 		return Inventories.splitStack(this.inv, slot, amount);
 	}
 
 	@Override
-	public ItemStack removeInvStack(int slot)
+	public ItemStack removeStack(int slot)
 	{
 		markDirty();
 		return Inventories.removeStack(this.inv, slot);
 	}
 
 	@Override
-	public void setInvStack(int slot, ItemStack stack)
+	public void setStack(int slot, ItemStack stack)
 	{
 		if (slot < 0 || slot >= inv.size())
 		{
@@ -129,15 +130,15 @@ public class BasicReceptacleEntity extends LootableContainerBlockEntity implemen
 		}
 
 		this.inv.set(slot, stack);
-		if (stack.getCount() > this.getInvMaxStackAmount())
+		if (stack.getCount() > this.getMaxCountPerStack())
 		{
-			stack.setCount(this.getInvMaxStackAmount());
+			stack.setCount(this.getMaxCountPerStack());
 		}
 		markDirty();
 	}
 
 	@Override
-	public boolean canPlayerUseInv(PlayerEntity player)
+	public boolean canPlayerUse(PlayerEntity player)
 	{
 		if (this.world == null)
 			return false;

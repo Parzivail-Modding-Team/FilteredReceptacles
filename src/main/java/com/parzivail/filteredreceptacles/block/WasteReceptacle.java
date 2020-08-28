@@ -7,10 +7,10 @@ import net.fabricmc.fabric.api.tools.FabricToolTags;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.container.Container;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -18,8 +18,8 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 
 public class WasteReceptacle extends BlockWithEntity implements InventoryProvider
 {
@@ -36,7 +36,7 @@ public class WasteReceptacle extends BlockWithEntity implements InventoryProvide
 
 	public BlockEntityType<?> getEntityType()
 	{
-		return Registry.BLOCK_ENTITY.get(Registry.BLOCK.getId(this));
+		return Registry.BLOCK_ENTITY_TYPE.get(Registry.BLOCK.getId(this));
 	}
 
 	public BlockRenderType getRenderType(BlockState state)
@@ -45,7 +45,7 @@ public class WasteReceptacle extends BlockWithEntity implements InventoryProvide
 	}
 
 	@Override
-	public SidedInventory getInventory(BlockState state, IWorld world, BlockPos pos)
+	public SidedInventory getInventory(BlockState state, WorldAccess world, BlockPos pos)
 	{
 		BlockEntity blockEntity = world.getBlockEntity(pos);
 		if (blockEntity instanceof WasteReceptacleEntity)
@@ -68,29 +68,23 @@ public class WasteReceptacle extends BlockWithEntity implements InventoryProvide
 		return true;
 	}
 
-	@Override
-	public boolean hasBlockEntity()
-	{
-		return true;
-	}
-
 	public int getComparatorOutput(BlockState state, World world, BlockPos pos)
 	{
-		return Container.calculateComparatorOutput(world.getBlockEntity(pos));
+		return ScreenHandler.calculateComparatorOutput(world.getBlockEntity(pos));
 	}
 
-	public void onBlockRemoved(BlockState blockState_1, World world_1, BlockPos blockPos_1, BlockState blockState_2, boolean boolean_1)
+	public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved)
 	{
-		if (blockState_1.getBlock() != blockState_2.getBlock())
+		if (!state.isOf(newState.getBlock()))
 		{
-			BlockEntity blockEntity_1 = world_1.getBlockEntity(blockPos_1);
-			if (blockEntity_1 instanceof Inventory)
+			BlockEntity blockEntity = world.getBlockEntity(pos);
+			if (blockEntity instanceof Inventory)
 			{
-				ItemScatterer.spawn(world_1, blockPos_1, (Inventory)blockEntity_1);
-				world_1.updateHorizontalAdjacent(blockPos_1, this);
+				ItemScatterer.spawn(world, pos, (Inventory)blockEntity);
+				world.updateComparators(pos, this);
 			}
 
-			super.onBlockRemoved(blockState_1, world_1, blockPos_1, blockState_2, boolean_1);
+			super.onStateReplaced(state, world, pos, newState, moved);
 		}
 	}
 
