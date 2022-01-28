@@ -23,16 +23,11 @@ public class FilterUtil
 			return false;
 
 		// TODO: Tags
-		switch (level)
-		{
-			case Item:
-				return a.getItem() == b.getItem();
-			case FuzzyItem:
-				return false;
-			case ItemAndData:
-				return a.getItem() == b.getItem() && Objects.equals(a.getTag(), b.getTag());
-			default:
-				throw new IndexOutOfBoundsException("level");
-		}
+		return switch (level)
+				{
+					case Item -> a.getItem() == b.getItem();
+					case FuzzyItem -> false;
+					case ItemAndData -> a.getItem() == b.getItem() && Objects.equals(a.getNbt(), b.getNbt());
+				};
 	}
 }

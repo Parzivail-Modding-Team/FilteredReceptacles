@@ -1,15 +1,17 @@
 package com.parzivail.filteredreceptacles.block;
 
+import com.parzivail.filteredreceptacles.FilteredReceptacles;
 import com.parzivail.filteredreceptacles.block.entity.WasteReceptacleEntity;
 import net.fabricmc.fabric.api.block.FabricBlockSettings;
-import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
 import net.fabricmc.fabric.api.tools.FabricToolTags;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -17,7 +19,6 @@ import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 
@@ -29,9 +30,9 @@ public class WasteReceptacle extends BlockWithEntity implements InventoryProvide
 	}
 
 	@Override
-	public BlockEntity createBlockEntity(BlockView view)
+	public BlockEntity createBlockEntity(BlockPos pos, BlockState state)
 	{
-		return new WasteReceptacleEntity(this);
+		return new WasteReceptacleEntity(pos, state);
 	}
 
 	public BlockEntityType<?> getEntityType()
@@ -56,7 +57,7 @@ public class WasteReceptacle extends BlockWithEntity implements InventoryProvide
 		{
 			if (blockEntity != null)
 			{
-				blockEntity.markInvalid();
+				blockEntity.markRemoved();
 			}
 			return null;
 		}
@@ -89,15 +90,20 @@ public class WasteReceptacle extends BlockWithEntity implements InventoryProvide
 	}
 
 	@Override
+	@org.jetbrains.annotations.Nullable
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type)
+	{
+		return world.isClient ? null : checkType(type, FilteredReceptacles.BLOCK_ENTITY_TYPE_RECEPTACLE_WASTE, WasteReceptacleEntity::tick);
+	}
+
+	@Override
 	public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit)
 	{
 		if (!world.isClient)
 		{
-			BlockEntity blockEntity = world.getBlockEntity(pos);
-			if (blockEntity instanceof WasteReceptacleEntity)
-			{
-				ContainerProviderRegistry.INSTANCE.openContainer(Registry.BLOCK.getId(this), player, buf -> buf.writeBlockPos(pos));
-			}
+			NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+			if (screenHandlerFactory != null)
+				player.openHandledScreen(screenHandlerFactory);
 		}
 		return ActionResult.SUCCESS;
 	}

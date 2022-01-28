@@ -1,7 +1,8 @@
 package com.parzivail.filteredreceptacles.block.entity;
 
-import com.parzivail.filteredreceptacles.block.WasteReceptacle;
-import com.parzivail.filteredreceptacles.gui.container.WasteReceptacleContainer;
+import com.parzivail.filteredreceptacles.FilteredReceptacles;
+import com.parzivail.filteredreceptacles.gui.container.WasteReceptacleScreenHandler;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -11,24 +12,25 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Tickable;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
 import java.util.stream.IntStream;
 
-public class WasteReceptacleEntity extends LootableContainerBlockEntity implements SidedInventory, Tickable
+public class WasteReceptacleEntity extends LootableContainerBlockEntity implements SidedInventory
 {
-	protected final int INPUT = 0;
+	protected static final int INPUT = 0;
 
 	private final String i18nName;
 	protected DefaultedList<ItemStack> inv;
 	protected long numItemsStored = 0;
 
-	public WasteReceptacleEntity(WasteReceptacle block)
+	public WasteReceptacleEntity(BlockPos blockPos, BlockState blockState)
 	{
-		super(block.getEntityType());
-		this.i18nName = block.getTranslationKey();
+		super(FilteredReceptacles.BLOCK_ENTITY_TYPE_RECEPTACLE_WASTE, blockPos, blockState);
+		this.i18nName = blockState.getBlock().getTranslationKey();
 
 		this.inv = DefaultedList.ofSize(1, ItemStack.EMPTY);
 	}
@@ -42,7 +44,7 @@ public class WasteReceptacleEntity extends LootableContainerBlockEntity implemen
 	@Override
 	protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory)
 	{
-		return new WasteReceptacleContainer(syncId, playerInventory, this);
+		return new WasteReceptacleScreenHandler(syncId, playerInventory, this);
 	}
 
 	@Override
@@ -154,13 +156,12 @@ public class WasteReceptacleEntity extends LootableContainerBlockEntity implemen
 		this.numItemsStored = numItemsStored;
 	}
 
-	@Override
-	public void tick()
+	public static void tick(World world, BlockPos pos, BlockState state, WasteReceptacleEntity blockEntity)
 	{
-		if (this.world == null)
+		if (world == null)
 			return;
 
-		if (!getStack(INPUT).isEmpty())
-			setStack(INPUT, ItemStack.EMPTY);
+		if (!blockEntity.getStack(WasteReceptacleEntity.INPUT).isEmpty())
+			blockEntity.setStack(WasteReceptacleEntity.INPUT, ItemStack.EMPTY);
 	}
 }

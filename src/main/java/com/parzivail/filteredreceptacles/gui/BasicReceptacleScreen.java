@@ -2,19 +2,20 @@ package com.parzivail.filteredreceptacles.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.parzivail.filteredreceptacles.FilteredReceptacles;
-import com.parzivail.filteredreceptacles.gui.container.BasicReceptacleContainer;
-import com.parzivail.filteredreceptacles.util.PlayerUtil;
+import com.parzivail.filteredreceptacles.gui.container.BasicReceptacleScreenHandler;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-public class BasicReceptacleScreen extends HandledScreen<BasicReceptacleContainer>
+public class BasicReceptacleScreen extends HandledScreen<BasicReceptacleScreenHandler>
 {
 	private static final Identifier TEXTURE = new Identifier(FilteredReceptacles.MODID, "textures/gui/container/receptacle_basic.png");
 
-	public BasicReceptacleScreen(BasicReceptacleContainer container)
+	public BasicReceptacleScreen(BasicReceptacleScreenHandler handler, PlayerInventory inventory, Text title)
 	{
-		super(container, PlayerUtil.getPlayerInventory(), container.getReceptacle().getDisplayName());
+		super(handler, inventory, title);
 		this.height = 140;
 	}
 
@@ -30,14 +31,14 @@ public class BasicReceptacleScreen extends HandledScreen<BasicReceptacleContaine
 	protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY)
 	{
 		this.textRenderer.draw(matrices, this.title.asOrderedText(), 8.0F, 6.0F, 0x404040);
-		this.textRenderer.draw(matrices, this.playerInventory.getDisplayName().asOrderedText(), 8.0F, (float)(this.height - 96 + 2), 0x404040);
+		this.textRenderer.draw(matrices, this.playerInventoryTitle, 8.0F, (float)(this.height - 96 + 2), 0x404040);
 	}
 
 	@Override
 	protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY)
 	{
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		this.client.getTextureManager().bindTexture(TEXTURE);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShaderTexture(0, TEXTURE);
 		int i = (this.width - this.backgroundWidth) / 2;
 		int j = (this.height - this.backgroundHeight) / 2;
 		this.drawTexture(matrices, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);

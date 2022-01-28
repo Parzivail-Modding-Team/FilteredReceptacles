@@ -11,6 +11,6 @@ public class PlayerUtil
 		if (c == null || c.player == null)
 			return null;
 
-		return c.player.inventory;
+		return c.player.getInventory();
 	}
 }

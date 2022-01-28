@@ -1,12 +1,12 @@
 package com.parzivail.filteredreceptacles.block.entity;
 
 import com.parzivail.filteredreceptacles.FilteredReceptacles;
-import com.parzivail.filteredreceptacles.block.BottomlessReceptacle;
-import com.parzivail.filteredreceptacles.gui.container.BottomlessReceptacleContainer;
+import com.parzivail.filteredreceptacles.gui.container.BottomlessReceptacleScreenHandler;
+import com.parzivail.filteredreceptacles.util.BlockEntityClientSerializable;
 import com.parzivail.filteredreceptacles.util.FilterUtil;
 import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
-import net.fabricmc.fabric.api.server.PlayerStream;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,47 +14,93 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Tickable;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
+import java.util.Collection;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-public class BottomlessReceptacleEntity extends LootableContainerBlockEntity implements SidedInventory, Tickable
+public class BottomlessReceptacleEntity extends LootableContainerBlockEntity implements SidedInventory, BlockEntityClientSerializable
 {
 	public static final int INPUT = 0;
 	public static final int OUTPUT = 1;
 	public static final int REFERENCE = 2;
 
-	private final String i18nName;
+	public static final int PROP_NUM_ITEMS_LO32 = 0;
+	public static final int PROP_NUM_ITEMS_HI32 = 1;
+
+	protected final String i18nName;
 	protected DefaultedList<ItemStack> inv;
 	protected long numItemsStored = 0;
 
-	public BottomlessReceptacleEntity(BottomlessReceptacle block)
+	private final PropertyDelegate propertyDelegate = new PropertyDelegate()
 	{
-		super(block.getEntityType());
-		this.i18nName = block.getTranslationKey();
+		@Override
+		public int get(int index)
+		{
+			if (index == PROP_NUM_ITEMS_LO32)
+				return (int)numItemsStored;
+			else if (index == PROP_NUM_ITEMS_HI32)
+				return (int)(numItemsStored >>> 32);
+			return 0;
+		}
+
+		@Override
+		public void set(int index, int value)
+		{
+		}
+
+		@Override
+		public int size()
+		{
+			return 2;
+		}
+	};
+
+	public BottomlessReceptacleEntity(BlockPos blockPos, BlockState blockState)
+	{
+		super(FilteredReceptacles.BLOCK_ENTITY_TYPE_RECEPTACLE_BOTTOMLESS, blockPos, blockState);
+		this.i18nName = blockState.getBlock().getTranslationKey();
 
 		this.inv = DefaultedList.ofSize(3, ItemStack.EMPTY);
 	}
 
 	@Override
-	public CompoundTag toTag(CompoundTag tag)
+	public void writeNbt(NbtCompound tag)
 	{
-		tag = super.toTag(tag);
-		Inventories.toTag(tag, inv, false);
+		super.writeNbt(tag);
+		Inventories.writeNbt(tag, inv);
 		tag.putLong("numItemsStored", numItemsStored);
-		return tag;
 	}
 
-	public CompoundTag serializeInventory(CompoundTag tag)
+	@Override
+	public void readNbt(NbtCompound tag)
 	{
+		super.readNbt(tag);
+		Inventories.readNbt(tag, inv);
+		numItemsStored = tag.getLong("numItemsStored");
+		markDirty();
+	}
+
+	@Override
+	public void fromClientTag(NbtCompound tag)
+	{
+		numItemsStored = tag.getLong("numItemsStored");
+	}
+
+	@Override
+	public NbtCompound toClientTag(NbtCompound tag)
+	{
+		tag.putLong("numItemsStored", numItemsStored);
 		return tag;
 	}
 
@@ -72,28 +118,7 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 	@Override
 	protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory)
 	{
-		return new BottomlessReceptacleContainer(syncId, playerInventory, this);
-	}
-
-	public CompoundTag toInitialChunkDataTag()
-	{
-		return this.toTag(new CompoundTag());
-	}
-
-	@Override
-	public void fromTag(BlockState state, CompoundTag tag)
-	{
-		super.fromTag(state, tag);
-		Inventories.fromTag(tag, inv);
-		numItemsStored = tag.getLong("numItemsStored");
-		markDirty();
-	}
-
-	public void fromItemTag(CompoundTag tag)
-	{
-		Inventories.fromTag(tag, inv);
-		numItemsStored = tag.getLong("numItemsStored");
-		markDirty();
+		return new BottomlessReceptacleScreenHandler(syncId, playerInventory, this, propertyDelegate);
 	}
 
 	@Override
@@ -206,62 +231,61 @@ public class BottomlessReceptacleEntity extends LootableContainerBlockEntity imp
 		this.numItemsStored = numItemsStored;
 	}
 
-	@Override
-	public void tick()
+	public static void tick(World world, BlockPos pos, BlockState state, BottomlessReceptacleEntity blockEntity)
 	{
-		if (this.world == null)
+		if (world == null)
 			return;
 
-		long prevStored = numItemsStored;
+		long prevStored = blockEntity.numItemsStored;
 
-		ItemStack inputStack = getStack(INPUT);
+		ItemStack inputStack = blockEntity.getStack(INPUT);
 		if (!inputStack.isEmpty())
 		{
-			if (FilterUtil.IsEmpty(getStack(REFERENCE)))
-				setStack(REFERENCE, inputStack.copy());
+			if (FilterUtil.IsEmpty(blockEntity.getStack(REFERENCE)))
+				blockEntity.setStack(REFERENCE, inputStack.copy());
 
 			if (!world.isClient)
-				numItemsStored += inputStack.getCount();
+				blockEntity.numItemsStored += inputStack.getCount();
 
-			setStack(INPUT, ItemStack.EMPTY);
+			blockEntity.setStack(INPUT, ItemStack.EMPTY);
 		}
 
-		if (getStack(OUTPUT).getCount() < getStack(REFERENCE).getMaxCount() && numItemsStored > 0)
+		if (blockEntity.getStack(OUTPUT).getCount() < blockEntity.getStack(REFERENCE).getMaxCount() && blockEntity.numItemsStored > 0)
 		{
 			ItemStack outputStack;
 			int outputSize;
 
-			if (FilterUtil.IsEmpty(getStack(OUTPUT)))
+			if (FilterUtil.IsEmpty(blockEntity.getStack(OUTPUT)))
 			{
-				outputStack = getStack(REFERENCE).copy();
+				outputStack = blockEntity.getStack(REFERENCE).copy();
 				outputSize = 0;
 			}
 			else
 			{
-				outputStack = getStack(OUTPUT).copy();
+				outputStack = blockEntity.getStack(OUTPUT).copy();
 				outputSize = outputStack.getCount();
 			}
 
-			int diff = (int)Math.min(numItemsStored, getStack(REFERENCE).getMaxCount() - outputSize);
+			int diff = (int)Math.min(blockEntity.numItemsStored, blockEntity.getStack(REFERENCE).getMaxCount() - outputSize);
 
 			if (!world.isClient)
-				numItemsStored -= diff;
+				blockEntity.numItemsStored -= diff;
 
 			outputStack.setCount(outputSize + diff);
 
-			setStack(OUTPUT, outputStack);
+			blockEntity.setStack(OUTPUT, outputStack);
 		}
 
-		if (!FilterUtil.IsEmpty(getStack(REFERENCE)) && numItemsStored == 0 && getStack(INPUT).isEmpty() && getStack(OUTPUT).isEmpty())
-			setStack(REFERENCE, ItemStack.EMPTY);
+		if (!FilterUtil.IsEmpty(blockEntity.getStack(REFERENCE)) && blockEntity.numItemsStored == 0 && blockEntity.getStack(INPUT).isEmpty() && blockEntity.getStack(OUTPUT).isEmpty())
+			blockEntity.setStack(REFERENCE, ItemStack.EMPTY);
 
-		if (prevStored != numItemsStored && !world.isClient)
+		if (prevStored != blockEntity.numItemsStored && !world.isClient)
 		{
-			Stream<PlayerEntity> watchingPlayers = PlayerStream.watching(world, pos);
+			Collection<ServerPlayerEntity> watchingPlayers = PlayerLookup.tracking(blockEntity);
 			PacketByteBuf passedData = new PacketByteBuf(Unpooled.buffer());
-			passedData.writeBlockPos(this.pos);
-			passedData.writeLong(numItemsStored);
-			watchingPlayers.forEach(player -> ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, FilteredReceptacles.PACKET_BOTTOMLESS_UPDATE, passedData));
+			passedData.writeBlockPos(pos);
+			passedData.writeLong(blockEntity.numItemsStored);
+			watchingPlayers.forEach(player -> ServerPlayNetworking.send(player, FilteredReceptacles.PACKET_BOTTOMLESS_UPDATE, passedData));
 		}
 	}
 }

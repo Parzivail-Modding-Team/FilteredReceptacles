@@ -1,7 +1,8 @@
 package com.parzivail.filteredreceptacles.block.entity;
 
+import com.parzivail.filteredreceptacles.FilteredReceptacles;
 import com.parzivail.filteredreceptacles.block.BasicReceptacle;
-import com.parzivail.filteredreceptacles.gui.container.BasicReceptacleContainer;
+import com.parzivail.filteredreceptacles.gui.container.BasicReceptacleScreenHandler;
 import com.parzivail.filteredreceptacles.util.FilterUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
@@ -10,24 +11,50 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 import java.util.stream.IntStream;
 
 public class BasicReceptacleEntity extends LootableContainerBlockEntity implements SidedInventory
 {
+	public static final int PROP_FILTER_LEVEL = 0;
 	protected final FilterUtil.FilterLevel filterLevel;
 	protected final String i18nName;
 	protected DefaultedList<ItemStack> inv;
 
-	public BasicReceptacleEntity(BasicReceptacle block)
+	private final PropertyDelegate propertyDelegate = new PropertyDelegate()
 	{
-		super(block.getEntityType());
+		@Override
+		public int get(int index)
+		{
+			if (index == PROP_FILTER_LEVEL)
+				return filterLevel.ordinal();
+			return 0;
+		}
+
+		@Override
+		public void set(int index, int value)
+		{
+		}
+
+		@Override
+		public int size()
+		{
+			return 1;
+		}
+	};
+
+	public BasicReceptacleEntity(BlockPos blockPos, BlockState blockState)
+	{
+		super(FilteredReceptacles.BLOCK_ENTITY_TYPE_RECEPTACLE_BASIC, blockPos, blockState);
+		var block = ((BasicReceptacle)blockState.getBlock());
 		this.filterLevel = block.getFilterLevel();
 		this.i18nName = block.getTranslationKey();
 
@@ -35,11 +62,18 @@ public class BasicReceptacleEntity extends LootableContainerBlockEntity implemen
 	}
 
 	@Override
-	public CompoundTag toTag(CompoundTag tag)
+	public void writeNbt(NbtCompound tag)
 	{
-		tag = super.toTag(tag);
-		Inventories.toTag(tag, inv);
-		return tag;
+		super.writeNbt(tag);
+		Inventories.writeNbt(tag, inv);
+	}
+
+	@Override
+	public void readNbt(NbtCompound tag)
+	{
+		super.readNbt(tag);
+		Inventories.readNbt(tag, inv);
+		markDirty();
 	}
 
 	@Override
@@ -51,15 +85,7 @@ public class BasicReceptacleEntity extends LootableContainerBlockEntity implemen
 	@Override
 	protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory)
 	{
-		return new BasicReceptacleContainer(syncId, playerInventory, this);
-	}
-
-	@Override
-	public void fromTag(BlockState state, CompoundTag tag)
-	{
-		super.fromTag(state, tag);
-		Inventories.fromTag(tag, inv);
-		markDirty();
+		return new BasicReceptacleScreenHandler(syncId, playerInventory, this, propertyDelegate);
 	}
 
 	@Override
